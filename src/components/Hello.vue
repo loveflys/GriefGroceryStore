@@ -1,221 +1,128 @@
 <template>
-  <q-layout
-    ref="layout"
-    view="lHh Lpr fff"
-    :left-class="{'bg-grey-2': true}"
-  >
-    <q-toolbar slot="header" class="glossy">
-      <q-btn
-        flat
-        @click="$refs.layout.toggleLeft()"
-      >
-        <q-icon name="menu" />
-      </q-btn>
-
-      <q-toolbar-title>
-        Quasar App
-        <div slot="subtitle">Running on Quasar v{{$q.version}}</div>
-      </q-toolbar-title>
-    </q-toolbar>
-
-    <div slot="left">
-      <!--
-        Use <q-side-link> component
-        instead of <q-item> for
-        internal vue-router navigation
-      -->
-
-      <q-list no-border link inset-delimiter>
-        <q-list-header>Essential Links</q-list-header>
-        <q-item @click="launch('http://quasar-framework.org')">
-          <q-item-side icon="school" />
-          <q-item-main label="Docs" sublabel="quasar-framework.org" />
-        </q-item>
-        <q-item @click="launch('http://forum.quasar-framework.org')">
-          <q-item-side icon="record_voice_over" />
-          <q-item-main label="Forum" sublabel="forum.quasar-framework.org" />
-        </q-item>
-        <q-item @click="launch('https://gitter.im/quasarframework/Lobby')">
-          <q-item-side icon="chat" />
-          <q-item-main label="Gitter Channel" sublabel="Quasar Lobby" />
-        </q-item>
-        <q-item @click="launch('https://twitter.com/quasarframework')">
-          <q-item-side icon="rss feed" />
-          <q-item-main label="Twitter" sublabel="@quasarframework" />
-        </q-item>
-      </q-list>
+  <div class="layout-padding row justify-center">
+    <q-btn
+      round
+      color="blue-3"
+      class="fixed-top-right"
+      style="margin: 30px 30px 0 0"
+    >
+      <q-icon name="edit" />
+      <q-tooltip anchor="bottom middle" self="top middle" :offset="[10, 10]">
+        写出你的困惑，试试看！
+      </q-tooltip>
+    </q-btn>
+    <div style="width: 500px; max-width: 90vw;">
+      <p class="caption">解忧杂货店</p>
+      
+      <br>
+      <q-infinite-scroll :handler="refresher">
+        <p v-for="(item, index) in items" v-bind:key="index" class="caption">
+          <q-card inline >
+            <q-card-title>
+              Title
+              <span slot="subtitle">Subtitle</span>
+              <q-icon slot="right" name="alarm" />
+            </q-card-title>
+            <q-card-main>
+              测试内容啊啊啊啊手机壳大时代
+              测试内容啊啊啊啊手机壳大时代
+              测试内容啊啊啊啊手机壳大时代
+              测试内容啊啊啊啊手机壳大时代
+            </q-card-main>
+            <q-card-separator />
+            <q-card-actions>
+              <q-btn flat>Action 1</q-btn>
+              <q-btn flat>Action 2</q-btn>
+            </q-card-actions>
+          </q-card>
+        </p>
+        <div class="row justify-center" style="margin-bottom: 50px;">
+          <q-spinner-dots slot="message" :size="40" />
+        </div>
+      </q-infinite-scroll>
     </div>
-
-    <!--
-      Replace following <div> with
-      <router-view /> component
-      if using subRoutes
-    -->
-    <div class="layout-padding logo-container non-selectable no-pointer-events">
-      <div class="logo" :style="position">
-        <img src="~assets/quasar-logo-full.svg">
-      </div>
-    </div>
-  </q-layout>
+    <q-btn
+      v-back-to-top
+      round
+      color="blue-3"
+      class="fixed-bottom-right"
+      style="margin: 0 30px 30px 0"
+    >
+      <q-icon name="keyboard_arrow_up" />
+    </q-btn>
+  </div>
 </template>
 
 <script>
 import {
-  dom,
-  event,
-  openURL,
-  QLayout,
-  QToolbar,
-  QToolbarTitle,
+  QInfiniteScroll,
+  QChip,
+  QSpinnerDots,
+  QCard,
+  QCardTitle,
+  QCardMedia,
+  QCardActions,
+  QCardSeparator,
+  QCardMain,
   QBtn,
   QIcon,
-  QList,
-  QListHeader,
-  QItem,
-  QItemSide,
-  QItemMain
+  BackToTop,
+  Ripple,
+  QTooltip
 } from 'quasar'
 
-const
-  { viewport } = dom,
-  { position } = event,
-  moveForce = 30,
-  rotateForce = 40,
-  RAD_TO_DEG = 180 / Math.PI
-
-function getRotationFromAccel (accelX, accelY, accelZ) {
-  /* Reference: http://stackoverflow.com/questions/3755059/3d-accelerometer-calculate-the-orientation#answer-30195572 */
-  const sign = accelZ > 0 ? 1 : -1
-  const miu = 0.001
-
-  return {
-    roll: Math.atan2(accelY, sign * Math.sqrt(Math.pow(accelZ, 2) + miu * Math.pow(accelX, 2))) * RAD_TO_DEG,
-    pitch: -Math.atan2(accelX, Math.sqrt(Math.pow(accelY, 2) + Math.pow(accelZ, 2))) * RAD_TO_DEG
-  }
-}
-
 export default {
-  name: 'index',
   components: {
-    QLayout,
-    QToolbar,
-    QToolbarTitle,
-    QBtn,
     QIcon,
-    QList,
-    QListHeader,
-    QItem,
-    QItemSide,
-    QItemMain
+    QBtn,
+    QCard,
+    QCardTitle,
+    QCardMedia,
+    QCardActions,
+    QCardSeparator,
+    QCardMain,
+    QInfiniteScroll,
+    QChip,
+    QSpinnerDots,
+    QTooltip
+  },
+  directives: {
+    BackToTop,
+    Ripple
   },
   data () {
     return {
-      orienting: window.DeviceOrientationEvent && !this.$q.platform.is.desktop,
-      rotating: window.DeviceMotionEvent && !this.$q.platform.is.desktop,
-      moveX: 0,
-      moveY: 0,
-      rotateY: 0,
-      rotateX: 0
-    }
-  },
-  computed: {
-    position () {
-      const transform = `rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg)`
-      return {
-        top: this.moveY + 'px',
-        left: this.moveX + 'px',
-        '-webkit-transform': transform,
-        '-ms-transform': transform,
-        transform
-      }
+      items: [{}, {}, {}, {}, {}]
     }
   },
   methods: {
-    launch (url) {
-      openURL(url)
-    },
-    move (evt) {
-      const
-        {width, height} = viewport(),
-        {top, left} = position(evt),
-        halfH = height / 2,
-        halfW = width / 2
+    refresher (index, done) {
+      setTimeout(() => {
+        let items = []
 
-      this.moveX = (left - halfW) / halfW * -moveForce
-      this.moveY = (top - halfH) / halfH * -moveForce
-      this.rotateY = (left / width * rotateForce * 2) - rotateForce
-      this.rotateX = -((top / height * rotateForce * 2) - rotateForce)
-    },
-    rotate (evt) {
-      if (evt.rotationRate &&
-          evt.rotationRate.beta !== null &&
-          evt.rotationRate.gamma !== null) {
-        this.rotateX = evt.rotationRate.beta * 0.7
-        this.rotateY = evt.rotationRate.gamma * -0.7
-      }
-      else {
-        /* evt.acceleration may be null in some cases, so we'll fall back
-           to evt.accelerationIncludingGravity */
-        const
-          accelX = evt.acceleration.x || evt.accelerationIncludingGravity.x,
-          accelY = evt.acceleration.y || evt.accelerationIncludingGravity.y,
-          accelZ = evt.acceleration.z || evt.accelerationIncludingGravity.z - 9.81,
-          rotation = getRotationFromAccel(accelX, accelY, accelZ)
+        for (let i = 0; i < 7; i++) {
+          items.push({})
+        }
 
-        this.rotateX = rotation.roll * 0.7
-        this.rotateY = rotation.pitch * -0.7
-      }
-    },
-    orient (evt) {
-      if (evt.beta === null || evt.gamma === null) {
-        window.removeEventListener('deviceorientation', this.orient, false)
-        this.orienting = false
-
-        window.addEventListener('devicemotion', this.rotate, false)
-      }
-      else {
-        this.rotateX = evt.beta * 0.7
-        this.rotateY = evt.gamma * -0.7
-      }
-    }
-  },
-  mounted () {
-    this.$nextTick(() => {
-      if (this.orienting) {
-        window.addEventListener('deviceorientation', this.orient, false)
-      }
-      else if (this.rotating) {
-        window.addEventListener('devicemove', this.rotate, false)
-      }
-      else {
-        document.addEventListener('mousemove', this.move)
-      }
-    })
-  },
-  beforeDestroy () {
-    if (this.orienting) {
-      window.removeEventListener('deviceorientation', this.orient, false)
-    }
-    else if (this.rotating) {
-      window.removeEventListener('devicemove', this.rotate, false)
-    }
-    else {
-      document.removeEventListener('mousemove', this.move)
+        this.items = this.items.concat(items)
+        done()
+      }, 2500)
     }
   }
 }
 </script>
 
-<style lang="stylus">
-.logo-container
-  width 255px
-  height 242px
-  perspective 800px
-  position absolute
-  top 50%
-  left 50%
-  transform translateX(-50%) translateY(-50%)
-.logo
-  position absolute
-  transform-style preserve-3d
+<style lang="styl">
+@import '~variables'
+  .play-backtotop
+    color white
+    position fixed
+    left 0
+    top 30%
+    padding 15px
+    width 90px
+    background-color $secondary
+    border-radius 0 15px 15px 0
+    &:hover
+      color $grey-4
 </style>
